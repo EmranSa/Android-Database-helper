@@ -1,0 +1,46 @@
+/*****************************************************/
+/*     Emran Sadeghi, BeyondMicrosoft@Gmail.com      */ 
+/*****************************************************/
+package com.ebm.DataBase;
+
+import java.util.ArrayList;
+
+public class BaseTable {
+	public int RowNumber;
+
+	public static ArrayList<?> Select(Class<?> typeOfResult, int pageNumber, String where) {
+		return DataBase.GetInstance().Select(typeOfResult, pageNumber, where);
+	}
+	
+	public static <T> T Single(Class<T> typeOfResult, long valueOfPrimaryKey) {
+		return DataBase.GetInstance().Single(typeOfResult, valueOfPrimaryKey);
+	}
+	
+	public static <T> T SingleOrDefault(Class<T> typeOfResult, long valueOfPrimaryKey) {
+		return DataBase.GetInstance().SingleOrDefault(typeOfResult, valueOfPrimaryKey);
+	}
+	
+	public static <T> T Single(Class<T> typeOfResult, String where) {
+		return DataBase.GetInstance().Single(typeOfResult, where);
+	}
+	
+	public static <T> T SingleOrDefault(Class<T> typeOfResult, String where) {
+		return DataBase.GetInstance().SingleOrDefault(typeOfResult, where);
+	}
+	
+	public void Insert() {
+		DataBase.GetInstance().Insert(this);
+	}
+	
+	public void Update() {
+		DataBase.GetInstance().Update(this);
+	}
+	
+	public void Delete() {
+		DataBase.GetInstance().Delete(this);
+	}
+	
+	public String GetPrimaryKeyColumn() {
+		return "RowNumber";
+	}
+}
