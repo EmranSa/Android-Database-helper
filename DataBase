@@ -130,6 +130,10 @@ public class DataBase  extends SQLiteOpenHelper {
 						continue;
 					}
 					
+					if (item.getType().isArray()) {
+		            			fieldType = item.getType().getComponentType() + "[]";
+		            		}
+					
 					if (filedsName.length() != 0) {
 						filedsName.append(',');
 						filedsValues.append(',');		
@@ -158,7 +162,7 @@ public class DataBase  extends SQLiteOpenHelper {
 		            	filedsValues.append(String.valueOf(item.get(obj)));
 		            	filedsValues.append('\'');
 		            }
-		            else if (fieldType.equals("java.lang.Byte[]") || fieldType.equals("byte[]")) {
+		            else if (fieldType.equals("byte[]")) {
 		            	filedsValues.append(EncodingUtils.getString((byte[])item.get(obj), "utf8").replace("\'", "\\'"));
 		            }
 		            else {
