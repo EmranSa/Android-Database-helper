@@ -8,16 +8,26 @@ import org.apache.http.util.EncodingUtils;
 /*****************************************************/
 /*     Emran Sadeghi, BeyondMicrosoft@Gmail.com      */ 
 /*****************************************************/
+import com.ebm.chsazan.CommonMethods;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Base64;
 
 public class DataBase  extends SQLiteOpenHelper {
 
 	public DataBase(Context context) {
-		super(context, "myappdb", null, 1);
+		super(context, "chsazan", null, 1);
+	}
+	
+	private static DataBase instance;
+	public static DataBase GetInstance() {
+		if (instance == null) {
+			instance = new DataBase(CommonMethods.applicationContext);
+		}
+		return instance;
 	}
 	
 	@Override
@@ -130,9 +140,9 @@ public class DataBase  extends SQLiteOpenHelper {
 						continue;
 					}
 					
-					if (item.getType().isArray()) {
-		            			fieldType = item.getType().getComponentType() + "[]";
-		            		}
+		            if (item.getType().isArray()) {
+		            	fieldType = item.getType().getComponentType() + "[]";
+		            }
 					
 					if (filedsName.length() != 0) {
 						filedsName.append(',');
@@ -164,7 +174,13 @@ public class DataBase  extends SQLiteOpenHelper {
 		            }
 		            else if (fieldType.equals("byte[]")) {
 		            	filedsValues.append('\'');
-		            	filedsValues.append(EncodingUtils.getString((byte[])item.get(obj), "utf8").replace("\'", "\\'"));
+		            	byte[] b = (byte[])item.get(obj);
+		            	if (b == null) {
+		            		b = new byte[0];
+		            	}
+		            	filedsValues.append(Base64.encodeToString(b, Base64.NO_WRAP));
+		            	
+		            	//filedsValues.append(EncodingUtils.getString((byte[])item.get(obj), "utf8").replace("\'", "\\'"));
 		            	filedsValues.append('\'');
 		            }
 		            else {
@@ -281,8 +297,11 @@ public class DataBase  extends SQLiteOpenHelper {
 		            }
 		            else if (fieldType.equals("byte[]")) {
 		            	filedsNameAndValues.append(item.getName());
-		            	filedsNameAndValues.append('=');
-		            	filedsNameAndValues.append(EncodingUtils.getString((byte[])item.get(obj), "utf8").replace("\'", "\\'"));
+		            	filedsNameAndValues.append("='");
+		            	//filedsNameAndValues.append(EncodingUtils.getString((byte[])item.get(obj), "utf8").replace("\'", "\\'"));
+		            	filedsNameAndValues.append(Base64.encodeToString((byte[])item.get(obj), Base64.NO_WRAP));
+		            	filedsNameAndValues.append('\'');
+		            	
 		            }
 		            else {
 		            	filedsNameAndValues.append(item.getName());
@@ -361,6 +380,42 @@ public class DataBase  extends SQLiteOpenHelper {
 				db.execSQL(query.toString());
 			}
 			
+			return true;
+		}
+		catch (Throwable r) {
+			r.printStackTrace();
+			return false;
+		}
+		finally {
+			if (db != null) {
+				db.close();
+			}
+		}
+	}
+	
+	public synchronized boolean TruncateTable(Class<?> type) {
+		return TruncateTable(type, null);
+	}
+	
+	public synchronized boolean TruncateTable(Class<?> type, String where) {
+		SQLiteDatabase db = null; 
+		try {
+			db = this.getWritableDatabase();
+			String tableName = type.getName().replace('.', '_');
+	
+			MakeSureCreateTableIfNotExist(db, tableName, type);
+			
+			StringBuilder query = new StringBuilder();
+			query.append("DELETE FROM ");
+			query.append(tableName);
+			
+			if (where != null && where != "") {
+				query.append(" WHERE ");
+				query.append(where);
+			}
+			
+			db.execSQL(query.toString());
+		
 			return true;
 		}
 		catch (Throwable r) {
@@ -517,7 +572,7 @@ public class DataBase  extends SQLiteOpenHelper {
 				            	item.set(obj, Boolean.valueOf(cur.getString(cur.getColumnIndex(item.getName()))));
 				            }
 				            else if (fieldType.equals("byte[]")) {
-				            	item.set(obj, EncodingUtils.getBytes(cur.getString(cur.getColumnIndex(item.getName())), "utf8"));
+				            	item.set(obj, Base64.decode(cur.getString(cur.getColumnIndex(item.getName())), Base64.NO_WRAP));
 				            }
 				            else {
 				            	item.set(obj, cur.getString(cur.getColumnIndex(item.getName())));
@@ -562,7 +617,7 @@ public class DataBase  extends SQLiteOpenHelper {
 	public synchronized <T> T SingleOrDefault(Class<T> typeOfResult, long valueOfPrimaryKey) {
 		String primaryKey = "RowNumber";
 		try {
-			primaryKey = (String)typeOfResult.getMethod("GetPrimaryKeyColumn", new Class<?>[0]).invoke(null, new Object[0]);
+			primaryKey = (String)typeOfResult.getMethod("GetPrimaryKeyColumn", new Class<?>[0]).invoke(typeOfResult.newInstance(), new Object[0]);
 		} 
 		catch (Throwable e) {
 			e.printStackTrace();
