@@ -163,7 +163,9 @@ public class DataBase  extends SQLiteOpenHelper {
 		            	filedsValues.append('\'');
 		            }
 		            else if (fieldType.equals("byte[]")) {
+		            	filedsValues.append('\'');
 		            	filedsValues.append(EncodingUtils.getString((byte[])item.get(obj), "utf8").replace("\'", "\\'"));
+		            	filedsValues.append('\'');
 		            }
 		            else {
 		            	filedsValues.append('\'');
