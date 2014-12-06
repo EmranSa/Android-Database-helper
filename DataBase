@@ -22,14 +22,6 @@ public class DataBase  extends SQLiteOpenHelper {
 		super(context, "chsazan", null, 1);
 	}
 	
-	private static DataBase instance;
-	public static DataBase GetInstance() {
-		if (instance == null) {
-			instance = new DataBase(CommonMethods.applicationContext);
-		}
-		return instance;
-	}
-	
 	@Override
 	public synchronized void onCreate(SQLiteDatabase db) {
 		
